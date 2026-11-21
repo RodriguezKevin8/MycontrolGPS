@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-800 antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+/* Estilos de compatibilidad para marcadores HTML de Leaflet */
+.leaflet-div-icon,
+.custom-map-pin,
+.select-pin {
+  background: transparent !important;
+  border: none !important;
+}
+

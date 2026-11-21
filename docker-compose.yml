@@ -1,0 +1,71 @@
+services:
+  # Base de Datos (MySQL 8.0)
+  mysql:
+    image: mysql:8.0
+    container_name: school_mysql_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: admin123
+      MYSQL_DATABASE: school
+      MYSQL_USER: user
+      MYSQL_PASSWORD: admin123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - school_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Servidor Backend (Laravel 12 con PHP 8.4 + Composer + Auto-Migrate & Auto-Seed)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: school_laravel_api_
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/var/www/html
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: school
+      DB_USERNAME: user
+      DB_PASSWORD: admin123
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - school_network
+    entrypoint: ["/bin/bash", "/var/www/html/entrypoint.sh"]
+
+  # Servidor Frontend (React 18 + TypeScript + Vite + Tailwind CSS)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: school_react_frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - school_network
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  school_network:
+    driver: bridge
