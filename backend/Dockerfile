@@ -1,7 +1,8 @@
+
 # Dockerfile para Backend Laravel (PHP 8.4 + Composer)
 FROM php:8.4-cli
 
-# Instalar dependencias del sistema y extensiones de PHP necesarias
+# Instalar dependencias del sistema
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -14,18 +15,34 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+    && docker-php-ext-install \
+        pdo_mysql \
+        mbstring \
+        exif \
+        pcntl \
+        bcmath \
+        gd \
+        zip \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-# Instalar la última versión de Composer
+# Instalar Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Configurar directorio de trabajo
+# Directorio de trabajo
 WORKDIR /var/www/html
 
-# Exponer el puerto de Laravel
+# Copiar el proyecto Laravel
+COPY . .
+
+# Instalar dependencias de Laravel
+RUN composer install \
+    --no-interaction \
+    --prefer-dist \
+    --optimize-autoloader
+
+# Exponer puerto
 EXPOSE 8000
 
-# Comando por defecto para iniciar el servidor de Laravel
+# Iniciar Laravel
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
-

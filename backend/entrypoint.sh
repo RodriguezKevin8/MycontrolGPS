@@ -30,6 +30,10 @@ fi
 echo "==> [Backend] Verificando enlace simbólico de almacenamiento..."
 php artisan storage:link || true
 
+# Limpiar cache de configuración
+echo "==> [Backend] Limpiando cache de configuración..."
+php artisan config:clear || true
+
 # 5. Ejecutar migraciones de la base de datos
 echo "==> [Backend] Ejecutando migraciones..."
 php artisan migrate --force
